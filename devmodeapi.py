@@ -1,6 +1,6 @@
 import sys
+import datetime
 import requests
-import json
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -16,9 +16,11 @@ class XboxOneDevmodeApi(object):
         # SSL verification is disabled here
         self.session.verify = False
 
-    def _get(self, endpoint):
-        r = self.session.get(self.base_url + endpoint)
-        return r
+    def _get(self, endpoint, *args, **kwargs):
+        return self.session.get(self.base_url + endpoint, *args, **kwargs)
+
+    def _post(self, endpoint, *args, **kwargs):
+        return self.session.post(self.base_url + endpoint, *args, **kwargs)
 
     def devicefamily(self):
         family = self._get('/api/os/devicefamily').json()
@@ -65,7 +67,8 @@ class XboxOneDevmodeApi(object):
 
     def devkitcertificationexpirationtime(self):
         info = self._get_info()
-        return info.get('DevkitCertificateExpirationTime')
+        timestamp = info.get('DevkitCertificateExpirationTime')
+        return datetime.datetime.fromtimestamp(timestamp)
 
 
 if __name__ == '__main__':
