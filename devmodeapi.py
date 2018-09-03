@@ -1,96 +1,90 @@
+import sys
 import requests
 import json
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-def devicefamily(ip):
-    family=requests.get("https://"+ ip +":11443/api/os/devicefamily", verify=False)
-    for x in json.loads(family.text):
-        return(json.loads(family.text)[x])
+class XboxOneDevmodeApi(object):
+    PORT = 11443
+
+    def __init__(self, ip_addr):
+        self.ip_addr = ip_addr
+        self.base_url = 'https://{0}:{1}'.format(self.ip_addr, self.PORT)
+        self.session = requests.session()
+
+        # Console has self-signed / unverified cert
+        # SSL verification is disabled here
+        self.session.verify = False
+
+    def _get(self, endpoint):
+        r = self.session.get(self.base_url + endpoint)
+        return r
+
+    def devicefamily(self):
+        family = self._get('/api/os/devicefamily').json()
+        return family.get('DeviceType')
+
+    def machinename(self):
+        machine = self._get('/api/os/machinename').json()
+        return machine.get('ComputerName')
+
+    def sandbox(self):
+        sandbox = self._get('/ext/xboxlive/sandbox').json()
+        return sandbox.get('Sandbox')
+
+    def _get_info(self):
+        return self._get('/ext/xbox/info').json()
+
+    def osversion(self):
+        info = self._get_info()
+        return info.get('OsVersion')
+
+    def devmode(self):
+        info = self._get_info()
+        return info.get('DevMode')
+
+    def osedition(self):
+        info = self._get_info()
+        return info.get('OsEdition')
+
+    def consoletype(self):
+        info = self._get_info()
+        return info.get('ConsoleType')
+
+    def consoleid(self):
+        info = self._get_info()
+        return info.get('ConsoleId')
+
+    def deviceid(self):
+        info = self._get_info()
+        return info.get('DeviceId')
+
+    def serialnumber(self):
+        info = self._get_info()
+        return info.get('SerialNumber')
+
+    def devkitcertificationexpirationtime(self):
+        info = self._get_info()
+        return info.get('DevkitCertificateExpirationTime')
+
+
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print('Please provide IP address')
+        print('Usage: {0} <ip>'.format(sys.argv[0]))
+        sys.exit(1)
     
-def machinename(ip):
-    machine=requests.get("https://"+ ip +":11443/api/os/machinename", verify=False)
-    for x in json.loads(machine.text):
-        return(json.loads(machine.text)[x])
+    ip_address = sys.argv[1]
+    api = XboxOneDevmodeApi(ip_address)
 
-def sandbox(ip):
-    sb=requests.get("https://"+ ip +":11443/ext/xboxlive/sandbox", verify=False)
-    for x in json.loads(sb.text):
-        return(json.loads(sb.text)[x]+" test = " + x)
-
-def osversion(ip):
-    ver=requests.get("https://"+ip+":11443/ext/xbox/info", verify=False)
-    for x in json.loads(ver.text):
-        out=(json.loads(ver.text)[x])
-        break
-    return(out)
-
-def devmode(ip):
-    ver=requests.get("https://"+ip+":11443/ext/xbox/info", verify=False)
-    i=0
-    for x in json.loads(ver.text):
-        out=(json.loads(ver.text)[x])
-        if i == 1:
-            break
-        i+=1
-    return(out)
-
-def osedition(ip):
-    ver=requests.get("https://"+ip+":11443/ext/xbox/info", verify=False)
-    i=0
-    for x in json.loads(ver.text):
-        out=(json.loads(ver.text)[x])
-        if i == 2:
-            break
-        i+=1
-    return(out)
-
-def consoletype(ip):
-    ver=requests.get("https://"+ip+":11443/ext/xbox/info", verify=False)
-    i=0
-    for x in json.loads(ver.text):
-        out=(json.loads(ver.text)[x])
-        if i == 3:
-            break
-        i+=1
-    return(out)
-
-def consoleid(ip):
-    ver=requests.get("https://"+ip+":11443/ext/xbox/info", verify=False)
-    i=0
-    for x in json.loads(ver.text):
-        out=(json.loads(ver.text)[x])
-        if i == 4:
-            break
-        i+=1
-    return(out)
-
-def deviceid(ip):
-    ver=requests.get("https://"+ip+":11443/ext/xbox/info", verify=False)
-    i=0
-    for x in json.loads(ver.text):
-        out=(json.loads(ver.text)[x])
-        if i == 5:
-            break
-        i+=1
-    return(out)
-
-def serialnumber(ip):
-    ver=requests.get("https://"+ip+":11443/ext/xbox/info", verify=False)
-    i=0
-    for x in json.loads(ver.text):
-        out=(json.loads(ver.text)[x])
-        if i == 6:
-            break
-        i+=1
-    return(out)
-
-def devkitcertificationexpirationtime(ip):
-    ver=requests.get("https://"+ip+":11443/ext/xbox/info", verify=False)
-    i=0
-    for x in json.loads(ver.text):
-        out=(json.loads(ver.text)[x])
-        if i == 7:
-            break
-        i+=1
-    return(out)
+    print('ConsoleId: {0}'.format(api.consoleid()))
+    print('ConsoleType: {0}'.format(api.consoletype()))
+    print('DeviceFamily: {0}'.format(api.devicefamily()))
+    print('DeviceId: {0}'.format(api.deviceid()))
+    print('Serial: {0}'.format(api.serialnumber()))
+    print('DevkitExpiration: {0}'.format(api.devkitcertificationexpirationtime()))
+    print('DevMode: {0}'.format(api.devmode()))
+    print('MachineName: {0}'.format(api.machinename()))
+    print('OsEdition: {0}'.format(api.osedition()))
+    print('OsVersion: {0}'.format(api.osversion()))
+    print('Sandbox: {0}'.format(api.sandbox()))
