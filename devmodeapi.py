@@ -46,6 +46,10 @@ class XboxOneDevmodeApi(object):
         family = self._get('/api/os/devicefamily').json()
         return family.get('DeviceType')
 
+    def get_connectedcontrollercount(self):
+        controllers = self._get('/ext/remoteinput/controllers').json()
+        return controllers.get('ConnectedControllerCount')
+
     def get_machinename(self):
         machine = self._get('/api/os/machinename').json()
         return machine.get('ComputerName')
@@ -126,6 +130,7 @@ if __name__ == '__main__':
     print('MachineName: {0}'.format(api.get_machinename()))
     print('OsEdition: {0}'.format(api.get_osedition()))
     print('OsVersion: {0}'.format(api.get_osversion()))
+    print('ConnectedControllerCount: {0}'.format(api.get_connectedcontrollercount()))
 
     # print('Setting: {0}'.format(api.get_setting('DefaultUWPContentTypeToGame')))
     # api.reboot()
