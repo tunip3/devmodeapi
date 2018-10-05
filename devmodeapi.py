@@ -46,11 +46,27 @@ class XboxOneDevmodeApi(object):
         url="/api/taskmanager/app?appid="+rai
         return self._post(url)
 
+    def setmachinename(self, name):
+        name = str(b64encode(name.encode()))
+        name = name.replace("b'", "")
+        name = name.replace("'", "")
+        name = name.replace("=", "%3D")
+        url="/api/os/machinename?name="+name
+        return self._post(url)
+
     def reboot(self):
         return self._post('/api/control/restart')
 
     def shutdown(self):
         return self._post('/api/control/shutdown')
+
+    def get_isproxyenabled(self):
+        family = self._get('/ext/fiddler ').json()
+        return family.get('IsProxyEnabled') == 'true'
+    
+    def get_knownfolders(self):
+        family = self._get('/api/filesystem/apps/knownfolders').json()
+        return family.get('KnownFolders')
 
     def get_devicefamily(self):
         family = self._get('/api/os/devicefamily').json()
@@ -129,7 +145,9 @@ if __name__ == '__main__':
     if r.status_code != 200:
         print('ERROR: Authentication failed, HTTP Status: {0}'.format(r.status_code))
         sys.exit(2)
-	
+
+    print("Is proxy enabled : {0}".format(api.get_isproxyenabled()))	
+    print("Folders in top directory : {0}".format(api.get_knownfolders()))
     print('ConsoleId: {0}'.format(api.get_consoleid()))
     print('ConsoleType: {0}'.format(api.get_consoletype()))
     print('DeviceFamily: {0}'.format(api.get_devicefamily()))
@@ -142,5 +160,7 @@ if __name__ == '__main__':
     print('OsVersion: {0}'.format(api.get_osversion()))
     print('ConnectedControllerCount: {0}'.format(api.get_connectedcontrollercount()))
     api.launchapp('DefaultApp_cw5n1h2txyewy!App')
+    #this works just doesnt show up in the dev menu app
+    api.setmachinename('XBOXONE')
     # print('Setting: {0}'.format(api.get_setting('DefaultUWPContentTypeToGame')))
 	# api.reboot()
