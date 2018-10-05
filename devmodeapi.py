@@ -2,6 +2,7 @@ import sys
 import datetime
 import requests
 import urllib3
+from base64 import b64encode
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
@@ -35,6 +36,15 @@ class XboxOneDevmodeApi(object):
 
     def get_root(self):
         return self._get('/')
+		
+    def launchapp(self, relativeappid):
+        rai=relativeappid
+        rai = str(b64encode(rai.encode()))
+        rai = rai.replace("b'", "")
+        rai = rai.replace("'", "")
+        rai = rai.replace("=", "%3D")
+        url="/api/taskmanager/app?appid="+rai
+        return self._post(url)
 
     def reboot(self):
         return self._post('/api/control/restart')
@@ -119,7 +129,7 @@ if __name__ == '__main__':
     if r.status_code != 200:
         print('ERROR: Authentication failed, HTTP Status: {0}'.format(r.status_code))
         sys.exit(2)
-
+	
     print('ConsoleId: {0}'.format(api.get_consoleid()))
     print('ConsoleType: {0}'.format(api.get_consoletype()))
     print('DeviceFamily: {0}'.format(api.get_devicefamily()))
@@ -131,6 +141,6 @@ if __name__ == '__main__':
     print('OsEdition: {0}'.format(api.get_osedition()))
     print('OsVersion: {0}'.format(api.get_osversion()))
     print('ConnectedControllerCount: {0}'.format(api.get_connectedcontrollercount()))
-
+    api.launchapp('DefaultApp_cw5n1h2txyewy!App')
     # print('Setting: {0}'.format(api.get_setting('DefaultUWPContentTypeToGame')))
-    # api.reboot()
+	# api.reboot()
