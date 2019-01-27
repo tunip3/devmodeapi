@@ -40,16 +40,14 @@ class XboxOneDevmodeApi(object):
     def launchapp(self, relativeappid):
         rai=relativeappid
         rai = str(b64encode(rai.encode()))
-        rai = rai.replace("b'", "")
-        rai = rai.replace("'", "")
+        rai = rai.decode()
         rai = rai.replace("=", "%3D")
         url="/api/taskmanager/app?appid="+rai
         return self._post(url)
 
     def setmachinename(self, name):
         name = str(b64encode(name.encode()))
-        name = name.replace("b'", "")
-        name = name.replace("'", "")
+        name = name.decode()
         name = name.replace("=", "%3D")
         url="/api/os/machinename?name="+name
         return self._post(url)
