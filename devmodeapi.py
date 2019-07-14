@@ -31,6 +31,9 @@ class XboxOneDevmodeApi(object):
     def _put(self, endpoint, *args, **kwargs):
         return self.session.put(self.base_url + endpoint, headers=self._csrf_header, *args, **kwargs)
 
+    def _delete(self, endpoint, *args, **kwargs)L
+        return self.session.delete(self.base_url + endpoint, *args, **kwargs)
+
     def set_credentials(self, user, pwd):
         self.session.auth = (user, pwd)
 
@@ -84,6 +87,10 @@ class XboxOneDevmodeApi(object):
         machine = self._get('/api/os/machinename').json()
         return machine.get('ComputerName')
 
+    def get_xblsandbox(self):
+        sandbox = self._get('/ext/xboxlive/sandbox').json()
+        return sandbox.get('Sandbox')
+
     def get_settings(self):
         return self._get('/ext/settings').json()
 
@@ -130,6 +137,84 @@ class XboxOneDevmodeApi(object):
         timestamp = info.get('DevkitCertificateExpirationTime')
         return datetime.datetime.fromtimestamp(timestamp)
 
+    def _get_osinfo(self):
+        return self._get('/api/os/info').json()
+
+    def get_oseditionid(self):
+        osinfo = self._get_osinfo()
+        return osinfo.get('OsEditionId')
+
+    def get_buildlabex(self):
+        osinfo = self._get_osinfo()
+        return osinfo.get('OsVersion')
+
+    def get_language(self):
+        osinfo = self._get_osinfo()
+        return osinfo.get('Language')
+
+    def _get_smbinfo(self):
+        return self._get('/ext/smb/developerfolder').json()
+    
+    def get_smbpath(self):
+        smbinfo =  self._get_smbinfo()
+        return smbinfo.get('Path')
+
+    def get_smbusername(self):
+        smbinfo =  self._get_smbinfo()
+        return smbinfo.get('Username')
+
+    def get_smbpassword(self):
+        smbinfo =  self._get_smbinfo()
+        return smbinfo.get('Password')
+
+    def _get_processes(self):
+        return self._get('/api/resourcemanager/processes').json()
+
+    def _get_processlist(self):
+        processlist = self._get_processes()
+        return processlist.get('Processes')
+
+    def get_processnames(self):
+        names=[]
+        for i in self._get_processlist():
+            proc = i.get('ImageName')
+            if proc != '':
+                names.append(proc)
+        return names
+
+    def get_pidsfromprocessname(self, name):
+        pids=[]
+        for i in self._get_processlist():
+            procname = i.get('ImageName')
+            if procname == name:
+                pid = i.get('ProcessId')
+                pids.append(pid)
+        return pids
+
+    def get_processnamefrompid(self, pid):
+        for i in self._get_processlist():
+            procid = i.get('ProcessId')
+            if procid == pid:
+                name = i.get('ImageName')
+        return name
+
+    def get_usernamefrompid(self, pid):
+        for i in self._get_processlist():
+            procid = i.get('ProcessId')
+            if procid == pid:
+                user = i.get('UserName')
+        return user
+
+    def get_cpuusagefrompid(self, pid):
+        for i in self._get_processlist():
+            procid = i.get('ProcessId')
+            if procid == pid:
+                cpu = i.get('CPUUsage')
+        return cpu
+
+    def remove_trustedsshpins(self):
+        remove = self._delete('/ext/app/sshpins')
+        return remove.status_code
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
@@ -152,19 +237,36 @@ if __name__ == '__main__':
 
     print("Is proxy enabled : {0}".format(api.get_isproxyenabled()))	
     print("Folders in top directory : {0}".format(api.get_knownfolders()))
-    print('ConsoleId: {0}'.format(api.get_consoleid()))
+    #print('ConsoleId: {0}'.format(api.get_consoleid()))
     print('ConsoleType: {0}'.format(api.get_consoletype()))
     print('DeviceFamily: {0}'.format(api.get_devicefamily()))
-    print('DeviceId: {0}'.format(api.get_deviceid()))
-    print('Serial: {0}'.format(api.get_serialnumber()))
-    print('DevkitExpiration: {0}'.format(api.get_devkitcertificationexpirationtime()))
+    #print('DeviceId: {0}'.format(api.get_deviceid()))
+    #print('Serial: {0}'.format(api.get_serialnumber()))
+    #print('DevkitExpiration: {0}'.format(api.get_devkitcertificationexpirationtime()))
     print('DevMode: {0}'.format(api.get_devmode()))
     print('MachineName: {0}'.format(api.get_machinename()))
+    print('XboxLiveSandbox: {0}'.format(api.get_xblsandbox()))
     print('OsEdition: {0}'.format(api.get_osedition()))
+    #print('OsEditionId: {0}'.format(api.get_oseditionid()))
     print('OsVersion: {0}'.format(api.get_osversion()))
+    print('BuildLabEx: {0}'.format(api.get_buildlabex()))
     print('ConnectedControllerCount: {0}'.format(api.get_connectedcontrollercount()))
-    api.launchapp('DefaultApp_cw5n1h2txyewy!App')
+    print('Language: {0}'.format(api.get_language()))
+    print('SMB Path: {0}'.format(api.get_smbpath()))
+    print('SMB Username: {0}'.format(api.get_smbusername()))
+    #print('SMB Password: {0}'.format(api.get_smbpassword()))
+    print('Name of the process with pid 0: {0}'.format(api.get_processnamefrompid(0)))
+    print('User currently running the process with pid 0: {0}'.format(api.get_usernamefrompid(0)))
+    print('CPU usage of the process with pid 0: {0}%'.format(api.get_cpuusagefrompid(0)))
+    #print('Status code from deleting trusted ssh pins: {0}'.format(api.remove_trustedsshpins()))
+    #print('currently running processes:')
+    #for i in api.get_processnames():
+    #    print(i)
+    #print('pids for sshd.exe')
+    #for i in apik.get_pidsfromprocessname('sshd.exe'):
+    #    print(i)
+    #api.launchapp('DefaultApp_cw5n1h2txyewy!App')
     #this works just doesnt show up in the dev menu app
-    api.setmachinename('XBOXONE')
-    # print('Setting: {0}'.format(api.get_setting('DefaultUWPContentTypeToGame')))
+    #api.setmachinename('XBOXONE')
+    #print('Setting: {0}'.format(api.get_setting('DefaultUWPContentTypeToGame')))
 	# api.reboot()
