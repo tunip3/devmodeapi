@@ -31,7 +31,7 @@ class XboxOneDevmodeApi(object):
     def _put(self, endpoint, *args, **kwargs):
         return self.session.put(self.base_url + endpoint, headers=self._csrf_header, *args, **kwargs)
 
-    def _delete(self, endpoint, *args, **kwargs)L
+    def _delete(self, endpoint, *args, **kwargs):
         return self.session.delete(self.base_url + endpoint, *args, **kwargs)
 
     def set_credentials(self, user, pwd):
